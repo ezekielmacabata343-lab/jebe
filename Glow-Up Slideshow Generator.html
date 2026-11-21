@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glow-Up Slideshow Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--pink:#ff5fa2;--pink2:#ffe3ef;--ink:#1d1b20;--mute:#6f6a75;--line:#ece7ee;--bg:#fbf8fa;--ok:#1f8a52}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+  header{padding:22px 18px 8px;max-width:1100px;margin:0 auto}
+  h1{font-family:Montserrat,sans-serif;font-weight:900;font-size:24px;margin:0 0 4px;letter-spacing:-.3px}
+  header p{margin:0;color:var(--mute);font-size:14px}
+  .modes{display:flex;gap:6px;margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:4px;width:fit-content;max-width:100%}
+  .modes button{background:transparent;color:var(--mute);padding:9px 14px}
+  .modes button.on{background:var(--pink);color:#fff}
+  main{max-width:1100px;margin:0 auto;padding:10px 14px 60px;display:grid;gap:14px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .step{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--pink);color:#fff;font-size:11px;margin-right:6px}
+  button,.btn{font:inherit;font-weight:600;border:0;border-radius:12px;padding:10px 14px;cursor:pointer;background:var(--pink2);color:#b0245f}
+  button.primary{background:var(--pink);color:#fff}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+  button:disabled{opacity:.45;cursor:default}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .lib{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:12px}
+  body.camp .lib{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  .tile{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden;display:flex;flex-direction:column}
+  .tile.star{border:2px solid var(--pink)}
+  .thumb{position:relative;aspect-ratio:1;display:grid;place-items:center}
+  .thumb img{max-width:86%;max-height:86%;object-fit:contain}
+  .thumb .x,.thumb .s{position:absolute;top:3px;width:22px;height:22px;padding:0;border-radius:50%;font-size:12px;line-height:22px;background:rgba(255,255,255,.92);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+  .thumb .x{right:3px}.thumb .s{left:3px}
+  .tile.star .s{background:var(--pink);color:#fff}
+  body.camp .thumb .s{display:none}
+  .meta{display:none;border-top:1px solid var(--line)}
+  body.camp .meta{display:block}
+  .meta input,.meta select{border:0;border-radius:0;font-size:12px;padding:6px 8px;width:100%}
+  .meta select{border-top:1px solid var(--line);color:var(--mute)}
+  .hint{font-size:13px;color:var(--mute);margin:8px 0 0;line-height:1.45}
+  textarea{width:100%;min-height:170px;font:inherit;font-size:14px;border:1px solid var(--line);border-radius:12px;padding:10px;resize:vertical;line-height:1.5}
+  label.f{display:grid;gap:4px;font-size:13px;color:var(--mute);font-weight:600}
+  input[type=text],input[type=number],select{font:inherit;font-size:14px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff;color:var(--ink);width:100%}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .check{display:flex;gap:8px;align-items:center;font-size:14px}
+  .only-collage{} .only-camp{display:none}
+  body.camp .only-collage{display:none} body.camp .only-camp{display:initial}
+  body.camp label.f.only-camp,body.camp div.only-camp{display:grid}
+  body.camp label.check.only-camp{display:flex}
+  .slides{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:12px}
+  .slide{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+  .slide img{width:100%;display:block;background:#fff;border-bottom:1px solid var(--line)}
+  .slide .bar{display:flex;gap:6px;padding:8px}
+  .slide .bar button{flex:1;padding:8px 6px;font-size:13px}
+  .slide input{border:0;border-bottom:1px solid var(--line);border-radius:0;font-size:13px;padding:8px 10px}
+  .groups{display:grid;gap:16px;margin-top:12px}
+  .group{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff;min-width:0}
+  .group h3{margin:0 0 8px;font-size:14px;display:flex;justify-content:space-between;gap:8px}
+  .strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}
+  .strip img{width:150px;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;scroll-snap-align:start;background:#fff}
+  .group textarea{min-height:150px;font-size:13px;margin-top:8px}
+  .checks{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .pill{font-size:12px;padding:4px 8px;border-radius:999px;background:#eaf7f0;color:var(--ok);font-weight:600}
+  .pill.bad{background:#fdecec;color:#b42318}
+  .empty{color:var(--mute);font-size:14px;padding:18px 0;text-align:center}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:.2s;pointer-events:none;max-width:90vw;text-align:center;z-index:9}
+  .toast.on{opacity:1}
+  .count{font-weight:600;color:var(--ink);text-transform:none;letter-spacing:0}
+  .rules{font-size:13px;line-height:1.5;color:var(--ink);background:#fff7fb;border:1px solid #ffd3e6;border-radius:12px;padding:10px 12px;margin:0}
+  .rules li{margin:2px 0}
+  @media(min-width:900px){main{grid-template-columns:1fr 1fr}.full{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Glow-Up Slideshow Generator</h1>
+  <p>Upload products once, drop in hooks, and get finished slides.</p>
+  <div class="modes"><button data-mode="collage">Glow-up collage</button><button data-mode="camp">MONDAY campaign</button></div>
+</header>
+<main>
+  <section class="card full only-camp" style="padding:12px 14px">
+    <ul class="rules" style="padding-left:28px">
+      <li>Campaign asset-pack images only: one product per slide, a hook slide plus 4 product slides.</li>
+      <li>Rotate MONDAY, BEING, TRUE and DAISE. Every caption needs <b>#mondayhaircare</b>, a tag for <b>@mondayhaircare</b> and a Target + Walmart mention.</li>
+      <li>No watermarks, no AI video, add trending audio at low volume when you post.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span><span class="step">1</span>Product library</span><span class="count" id="libCount">0 items</span></h2>
+    <div class="row">
+      <label class="btn" style="background:var(--pink);color:#fff">+ Add images<input id="file" type="file" accept="image/*" multiple hidden></label>
+      <button class="ghost" id="clearLib">Clear all</button>
+    </div>
+    <div class="lib" id="lib"></div>
+    <p class="hint only-collage">Product shots on a white or transparent background look best; white edges are trimmed automatically. Tap ★ to make an item a <b>staple</b> that goes on every slide.</p>
+    <p class="hint only-camp">Upload the campaign asset-pack images. Give each one its product name (shown on the slide) and its brand so carousels rotate across all four.</p>
+  </section>
+
+  <section class="card">
+    <h2><span><span class="step">2</span>Hooks</span><span class="count" id="hookCount"></span></h2>
+    <textarea id="hooks" spellcheck="false"></textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="ghost" id="resetHooks">Restore starter hooks</button>
+      <button class="ghost" id="shuffleHooks">Shuffle order</button>
+    </div>
+    <p class="hint only-collage">One hook per line. Each line becomes one slide.</p>
+    <p class="hint only-camp">One hook per line, one carousel per hook. <b>{store}</b> is swapped for the retailer you pick, so captions match the asset.</p>
+  </section>
+
+  <section class="card full">
+    <h2><span><span class="step">3</span>Settings</span></h2>
+    <div class="grid3">
+      <label class="f">Format
+        <select id="fmt"><option value="1080x1440">3:4 (1080×1440)</option><option value="1080x1920">9:16 (1080×1920)</option><option value="1080x1350">4:5 (1080×1350)</option></select>
+      </label>
+      <label class="f only-collage">Items per slide (min)<input id="minN" type="number" min="3" max="20" value="11"></label>
+      <label class="f only-collage">Items per slide (max)<input id="maxN" type="number" min="3" max="20" value="14"></label>
+      <label class="f only-collage">Watermark (optional)<input id="handle" type="text" placeholder="@yourhandle"></label>
+      <label class="f">How many
+        <select id="slideMode"><option value="all">One per hook</option><option value="3">3</option><option value="5">5</option><option value="7">7</option><option value="10">10</option></select>
+      </label>
+      <label class="f">Caption size
+        <select id="capSize"><option value="0.9">Smaller</option><option value="1" selected>Normal</option><option value="1.12">Bigger</option></select>
+      </label>
+      <label class="f only-camp">Asset-pack retailer
+        <select id="retailer"><option value="Target">Target</option><option value="Walmart">Walmart</option><option value="Drugstore">Drugstore</option></select>
+      </label>
+      <label class="f only-camp">Page type
+        <select id="pageType"><option value="grown">Grown theme page (10k+)</option><option value="new">New beauty page</option></select>
+      </label>
+    </div>
+    <div class="row" style="margin-top:12px;gap:16px">
+      <label class="check"><input type="checkbox" id="quotes" checked> Wrap hook in “quotes”</label>
+      <label class="check only-collage"><input type="checkbox" id="noRepeat" checked> Avoid back-to-back repeats</label>
+      <label class="check only-camp"><input type="checkbox" id="hookSlide" checked> Hook slide first (5 slides)</label>
+      <label class="check only-camp"><input type="checkbox" id="names" checked> Product name on slides</label>
+      <label class="check only-camp"><input type="checkbox" id="adTag" checked> Add #ad disclosure</label>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="primary" id="gen">Generate</button>
+      <button id="zipAll" disabled>Save all (.zip)</button>
+    </div>
+  </section>
+
+  <section class="card full">
+    <h2><span><span class="step">4</span>Output</span><span class="count" id="slideCount"></span></h2>
+    <div id="out"><div class="empty">Add some products and hit Generate.</div></div>
+    <p class="hint" id="saveHint"></p>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const STARTER = {
+  collage: [
+    "it was never really that hard to glow up",
+    "Mom, why do I look so expensive?",
+    "Mom, why is everyone asking what perfume I wear?",
+    "Mom, why does my hair look like a shampoo ad?",
+    "Mom, why do strangers keep complimenting me?",
+    "Mom, why do I look like the main character?",
+    "Mom, why do my lips look so soft?",
+    "Mom, why do I look rested on 5 hours of sleep?",
+    "Mom, why do my photos look edited?",
+    "Mom, why do I look like a Pinterest board?",
+    "Mom, why does everyone want my routine?",
+    "Mom, why do I smell this good?",
+    "Mom, why is my hair this shiny?",
+    "Mom, why do I look effortless?",
+    "the glow up kit nobody told you about",
+    "Mom, why does my skin glow like this?"
+  ],
+  camp: [
+    "best haircare finds at {store} under $20",
+    "{store} haircare finds that are actually worth it",
+    "haircare finds at {store} you're sleeping on",
+    "the prettiest haircare on the shelf at {store} right now",
+    "green flags in a haircare product",
+    "the only heat protectants you need",
+    "best dry shampoos for day 3 hair",
+    "Mom, why does my hair look like a shampoo ad?",
+    "haircare that smells expensive but isn't",
+    "beauty stocking stuffers she'll actually use",
+    "Secret Santa gifts under $20 from {store}",
+    "rate these {store} haircare finds 1–10",
+    "it was never really hard to have good hair days",
+    "the {store} haircare haul my hair needed"
+  ]
+};
+const BRANDS = ['MONDAY','BEING','TRUE','DAISE'];
+const ENGAGE = ["Which one would you buy first?","Rate these 1–10 👇","Which one are you trying first?","Tell me your holy grail below 👇","Be honest, which one's going in your cart?"];
+
+const state = { mode: 'collage', items: [], slides: [], groups: [], downloads: null };
+let toastT;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2200); }
+const rand = (a,b) => a + Math.random()*(b-a);
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const uid = () => Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+const camp = () => state.mode==='camp';
+
+/* ---------- storage (best effort) ---------- */
+const LS = {
+  get(k,d){ try{ const v=localStorage.getItem('gug_'+k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{ localStorage.setItem('gug_'+k, JSON.stringify(v)); }catch(e){} }
+};
+let dbP=null;
+function idb(){
+  if(dbP) return dbP;
+  dbP=new Promise(res=>{ try{ const r=indexedDB.open('glowup-gen',1);
+    r.onupgradeneeded=()=>r.result.createObjectStore('items',{keyPath:'id'});
+    r.onsuccess=()=>res(r.result); r.onerror=()=>res(null); }catch(e){ res(null); } });
+  return dbP;
+}
+async function dbOp(mode, fn){
+  const db=await idb(); if(!db) return null;
+  return new Promise(res=>{ try{ const tx=db.transaction('items',mode); const r=fn(tx.objectStore('items'));
+    tx.oncomplete=()=>res(r&&r.result); tx.onerror=()=>res(null); }catch(e){ res(null); } });
+}
+const rec = it => ({id:it.id,name:it.name,label:it.label,brand:it.brand,blob:it.blob,star:it.star,added:it.added});
+const dbPut = it => dbOp('readwrite', st=>st.put(rec(it)));
+const dbDel = id => dbOp('readwrite', st=>st.delete(id));
+const dbClear = () => dbOp('readwrite', st=>st.clear());
+const dbAll = () => dbOp('readonly', st=>st.getAll());
+
+/* ---------- image processing ---------- */
+async function loadBitmap(blob){
+  if(window.createImageBitmap){ try{ return await createImageBitmap(blob); }catch(e){} }
+  return new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=URL.createObjectURL(blob); });
+}
+async function processBlob(blob){
+  const bm=await loadBitmap(blob);
+  const sc=Math.min(1, 1000/Math.max(bm.width,bm.height));
+  const w=Math.max(1,Math.round(bm.width*sc)), h=Math.max(1,Math.round(bm.height*sc));
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(bm,0,0,w,h);
+  const d=x.getImageData(0,0,w,h).data;
+  let x0=w,y0=h,x1=-1,y1=-1;
+  for(let y=0;y<h;y++) for(let i=0;i<w;i++){
+    const p=(y*w+i)*4;
+    if(d[p+3]>16 && !(d[p]>240&&d[p+1]>240&&d[p+2]>240)){ if(i<x0)x0=i; if(i>x1)x1=i; if(y<y0)y0=y; if(y>y1)y1=y; }
+  }
+  if(x1<0){x0=0;y0=0;x1=w-1;y1=h-1;}
+  x0=Math.max(0,x0-2); y0=Math.max(0,y0-2); x1=Math.min(w-1,x1+2); y1=Math.min(h-1,y1+2);
+  const tw=x1-x0+1, th=y1-y0+1;
+  const t=document.createElement('canvas'); t.width=tw; t.height=th;
+  t.getContext('2d').drawImage(c,x0,y0,tw,th,0,0,tw,th);
+  return { img:t, ar:Math.min(4,Math.max(0.25,tw/th)), thumb:t.toDataURL('image/png') };
+}
+function guessLabel(name){ return name.replace(/\.[a-z0-9]+$/i,'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim(); }
+function guessBrand(name){ const u=name.toUpperCase(); return BRANDS.find(b=>u.includes(b))||'MONDAY'; }
+
+/* ---------- library UI ---------- */
+function renderLib(){
+  const lib=$('#lib'); lib.innerHTML='';
+  state.items.forEach(it=>{
+    const d=document.createElement('div'); d.className='tile'+(it.star&&!camp()?' star':'');
+    d.innerHTML=`<div class="thumb"><img alt=""><button class="s" title="Staple">★</button><button class="x" title="Remove">✕</button></div>
+      <div class="meta"><input type="text" placeholder="Product name"><select>${BRANDS.map(b=>`<option>${b}</option>`).join('')}</select></div>`;
+    d.querySelector('img').src=it.thumb;
+    d.querySelector('.s').onclick=()=>{ it.star=!it.star; dbPut(it); renderLib(); };
+    d.querySelector('.x').onclick=()=>{ state.items=state.items.filter(i=>i!==it); dbDel(it.id); renderLib(); };
+    const inp=d.querySelector('.meta input'), sel=d.querySelector('.meta select');
+    inp.value=it.label||''; sel.value=it.brand||'MONDAY';
+    inp.onchange=()=>{ it.label=inp.value.trim(); dbPut(it); };
+    sel.onchange=()=>{ it.brand=sel.value; dbPut(it); updLibCount(); };
+    lib.appendChild(d);
+  });
+  updLibCount();
+}
+function updLibCount(){
+  const n=state.items.length;
+  let s=`${n} item${n===1?'':'s'}`;
+  if(camp()){ const b=new Set(state.items.map(i=>i.brand)); s+=` · ${b.size}/4 brands`; }
+  else { const st=state.items.filter(i=>i.star).length; if(st) s+=` · ${st} staple${st===1?'':'s'}`; }
+  $('#libCount').textContent=s;
+}
+$('#file').addEventListener('change', async e=>{
+  const files=[...e.target.files]; e.target.value='';
+  if(!files.length) return;
+  toast(`Processing ${files.length} image${files.length>1?'s':''}…`);
+  for(const f of files){
+    try{ const p=await processBlob(f);
+      const it={id:uid(),name:f.name,label:guessLabel(f.name),brand:guessBrand(f.name),blob:f,star:false,added:Date.now(),...p};
+      state.items.push(it); dbPut(it);
+    }catch(err){ toast(`Couldn't read ${f.name}`); }
+  }
+  renderLib();
+});
+$('#clearLib').onclick=()=>{
+  if(!state.items.length) return;
+  const b=$('#clearLib');
+  if(b.dataset.armed){ state.items=[]; dbClear(); renderLib(); b.textContent='Clear all'; delete b.dataset.armed; return; }
+  b.dataset.armed='1'; b.textContent='Tap again to clear'; setTimeout(()=>{ b.textContent='Clear all'; delete b.dataset.armed; },2500);
+};
+
+/* ---------- hooks + settings ---------- */
+const hooksEl=$('#hooks');
+function loadHooks(){ hooksEl.value=LS.get('hooks_'+state.mode, STARTER[state.mode].join('\n')); updHookCount(); }
+function getHooks(){ return hooksEl.value.split('\n').map(s=>s.trim()).filter(Boolean); }
+function updHookCount(){ const n=getHooks().length; $('#hookCount').textContent=`${n} hook${n===1?'':'s'}`; }
+hooksEl.addEventListener('input',()=>{ LS.set('hooks_'+state.mode,hooksEl.value); updHookCount(); });
+$('#resetHooks').onclick=()=>{ hooksEl.value=STARTER[state.mode].join('\n'); LS.set('hooks_'+state.mode,hooksEl.value); updHookCount(); };
+$('#shuffleHooks').onclick=()=>{ hooksEl.value=shuffle(getHooks()).join('\n'); LS.set('hooks_'+state.mode,hooksEl.value); updHookCount(); };
+const SETTINGS=['fmt','minN','maxN','slideMode','handle','capSize','quotes','noRepeat','retailer','pageType','hookSlide','names','adTag'];
+const saved=LS.get('settings',{});
+SETTINGS.forEach(k=>{ const el=$('#'+k); if(saved[k]!==undefined){ if(el.type==='checkbox') el.checked=saved[k]; else el.value=saved[k]; }
+  el.addEventListener('change',()=>{ const o={}; SETTINGS.forEach(j=>{const e=$('#'+j); o[j]=e.type==='checkbox'?e.checked:e.value;}); LS.set('settings',o); }); });
+function cfg(){
+  const [W,H]=$('#fmt').value.split('x').map(Number);
+  let mn=+$('#minN').value||9, mx=+$('#maxN').value||12; if(mx<mn)[mn,mx]=[mx,mn];
+  return { W,H,mn,mx, handle:camp()?'':$('#handle').value.trim(), cap:+$('#capSize').value, quotes:$('#quotes').checked,
+    retailer:$('#retailer').value, pageType:$('#pageType').value, hookSlide:$('#hookSlide').checked, names:$('#names').checked, adTag:$('#adTag').checked };
+}
+function setMode(m){
+  state.mode=m; LS.set('mode',m);
+  document.body.classList.toggle('camp', m==='camp');
+  document.querySelectorAll('.modes button').forEach(b=>b.classList.toggle('on', b.dataset.mode===m));
+  loadHooks(); renderLib(); renderOut();
+}
+document.querySelectorAll('.modes button').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+
+/* ---------- layout ---------- */
+/* Layout modeled on the reference collages:
+   - items sit in horizontal bands (1 band above the caption, 2 below at 3:4)
+   - visual-weight sizing: height ~ ar^-0.3, so tall bottles get taller and wide items shorter
+   - each band spreads edge to edge with even gaps
+   - one bigger "hero" item below the caption; the last band sits on the bottom edge
+   - very wide items (mascara tubes) tuck into the seam between bands */
+const PW = 0.3;
+const bw = it => Math.pow(it.ar, 1-PW) * (it.boost||1);
+const bh = it => Math.pow(it.ar, -PW) * (it.boost||1);
+function partitionRows(items, caps){
+  // caps[r] = relative capacity of band r (wider/shorter bands hold more)
+  const R=caps.length;
+  if(R<=1) return [items.slice()];
+  const capSum=caps.reduce((a,b)=>a+b,0);
+  let best=null;
+  for(let t=0;t<260;t++){
+    const order=shuffle(items.slice());
+    const total=order.reduce((a,it)=>a+bw(it),0);
+    const targets=caps.map(c=>total*c/capSum);
+    const bounds=[]; let run=0; targets.forEach(tg=>{ run+=tg; bounds.push(run); });
+    const rows=caps.map(()=>[]); let acc=0, r=0;
+    for(const it of order){
+      if(r<R-1 && rows[r].length && acc+bw(it)/2>bounds[r]) r++;
+      rows[r].push(it); acc+=bw(it);
+    }
+    let score=0;
+    rows.forEach((row,i)=>{ const w=row.reduce((a,it)=>a+bw(it),0); score+=((w-targets[i])/targets[i])**2; if(row.length<2&&items.length>=2*R) score+=3; if(!row.length) score+=10; });
+    if(!best||score<best.score) best={score,rows};
+  }
+  return best.rows;
+}
+function layoutBands(rows, x, y, w, h, gap, opts){
+  const out=[], seams=[];
+  const R=rows.length; if(!R) return {out,seams};
+  const rowH=(h-gap*(R-1))/R;
+  const maxGap=w*0.07;
+  rows.forEach((row,ri)=>{
+    const ry=y+ri*(rowH+gap);
+    const k=row.length;
+    const u=Math.min(rowH/Math.max(...row.map(bh)), (w-gap*(k-1))/row.reduce((a,it)=>a+bw(it),0));
+    const ws=row.map(it=>bw(it)*u*rand(0.95,1.03)), hs=row.map((it,i)=>ws[i]/it.ar);
+    const used=ws.reduce((a,b)=>a+b,0);
+    let g=k>1?(w-used)/(k-1):0, startX=x;
+    if(k===1 || g>maxGap){ g=k>1?Math.min(g,maxGap):0; startX=x+(w-used-g*(k-1))/2; }
+    const align = (opts.bottomLast && ri===R-1) ? 'bottom' : 'center';
+    let cx=startX;
+    row.forEach((it,i)=>{
+      const hh=Math.min(hs[i],rowH), ww=hh*it.ar;
+      const yy = align==='bottom' ? ry+rowH-hh : ry+(rowH-hh)/2+rand(-0.03,0.03)*rowH;
+      out.push({it,x:cx+(ws[i]-ww)/2,y:Math.max(ry,Math.min(ry+rowH-hh,yy)),w:ww,h:hh});
+      cx+=ws[i]+g;
+    });
+    if(ri<R-1) seams.push(ry+rowH+gap/2);
+  });
+  return {out,seams};
+}
+function wrapLines(ctx,text,maxW){
+  const words=text.split(/\s+/), lines=[]; let cur='';
+  for(const wd of words){ const t=cur?cur+' '+wd:wd; if(ctx.measureText(t).width<=maxW||!cur) cur=t; else { lines.push(cur); cur=wd; } }
+  if(cur) lines.push(cur); return lines;
+}
+const FONT = fs => `900 ${fs}px Montserrat, "Arial Black", sans-serif`;
+function fitText(ctx,text,W,base,maxLines,maxW){
+  let fs=base, lines;
+  for(let k=0;k<14;k++){ ctx.font=FONT(fs); lines=wrapLines(ctx,text,maxW||W*0.86); if(lines.length<=maxLines) break; fs*=0.92; }
+  return {fs,lines,lh:fs*1.12};
+}
+function drawOutlined(ctx,lines,fs,lh,cx,topY){
+  ctx.font=FONT(fs); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.lineJoin='round'; ctx.miterLimit=2;
+  lines.forEach((ln,i)=>{
+    const ty=topY+lh*(i+0.5);
+    ctx.save(); ctx.shadowColor='rgba(0,0,0,.35)'; ctx.shadowBlur=fs*0.12; ctx.shadowOffsetY=fs*0.03;
+    ctx.lineWidth=fs*0.17; ctx.strokeStyle='#000'; ctx.strokeText(ln,cx,ty); ctx.restore();
+    ctx.fillStyle='#fff'; ctx.fillText(ln,cx,ty);
+  });
+}
+function hookText(h,c){ return c.quotes ? '“'+h.replace(/^["“”]+|["“”]+$/g,'')+'”' : h; }
+
+function renderCollage(slide,c){
+  const {W,H}=c;
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H); ctx.imageSmoothingQuality='high';
+  let tf=fitText(ctx,hookText(slide.hook,c),W,W*0.07*c.cap,2,W*0.9);
+  if(tf.fs<W*0.054*c.cap) tf=fitText(ctx,hookText(slide.hook,c),W,W*0.064*c.cap,3,W*0.9);
+  const {fs,lines,lh}=tf;
+  const capH=lines.length*lh, m=W*0.035, gap=W*0.025, capGap=W*0.05, capMid=H*slide.capPos;
+  const topY=m, topH=capMid-capH/2-capGap-m, botY=capMid+capH/2+capGap, botH=H-m*0.6-botY;
+  const bandH=W*0.36;
+  let rTop=Math.max(1,Math.round(topH/bandH)), rBot=Math.max(1,Math.round(botH/bandH));
+
+  const items=slide.items.map(it=>Object.assign(Object.create(it),{boost:1}));
+  const fillers=items.filter(it=>it.ar>3).slice(0,rBot>1?1:0);
+  let rest=items.filter(it=>!fillers.includes(it));
+  const n=rest.length;
+  while(rTop+rBot>1 && n<2*(rTop+rBot)){ if(rBot>=rTop&&rBot>1) rBot--; else if(rTop>1) rTop--; else break; }
+  const rhTop=(topH-gap*(rTop-1))/rTop, rhBot=(botH-gap*(rBot-1))/rBot;
+  const caps=[...Array(rTop).fill(Math.pow(1/rhTop,0.6)), ...Array(rBot).fill(Math.pow(1/rhBot,0.6))];
+  const rows=partitionRows(rest, caps);
+  const topRows=rows.slice(0,rTop).filter(r=>r.length), botRows=rows.slice(rTop).filter(r=>r.length);
+  // hero: one mid-aspect item below the caption gets bigger
+  const heroPool=botRows.flat().filter(it=>it.ar>0.55&&it.ar<1.5);
+  if(heroPool.length) pick(heroPool).boost=1.3;
+  const top=layoutBands(topRows, m, topY, W-2*m, topH, gap, {bottomLast:false});
+  const fw0=W*rand(0.32,0.38), fh0=fillers.length?fw0/fillers[0].ar:0;
+  const bot=layoutBands(botRows, m, botY, W-2*m, botH, Math.max(gap, fh0*0.75), {bottomLast:true});
+  [...top.out, ...bot.out].forEach(p=>ctx.drawImage(p.it.img,p.x,p.y,p.w,p.h));
+  // wide fillers tucked into the seam between the bottom bands
+  fillers.forEach((it,i)=>{
+    const sy=bot.seams[i%bot.seams.length]; if(sy==null) return;
+    const fw=fw0, fh=fw/it.ar;
+    const fx=W*rand(0.3,0.55)-fw/2+W*0.1;
+    ctx.drawImage(it.img, Math.max(m,Math.min(W-m-fw,fx)), sy-fh/2, fw, fh);
+  });
+  drawOutlined(ctx,lines,fs,lh,W/2,capMid-capH/2);
+  if(c.handle){
+    const hd=c.handle.startsWith('@')?c.handle:'@'+c.handle, ws=W*0.04;
+    ctx.font=`600 ${ws}px Inter, sans-serif`; ctx.textAlign='right';
+    const wy=capMid+(H-capMid)*0.45;
+    ctx.lineWidth=ws*0.14; ctx.strokeStyle='rgba(0,0,0,.25)'; ctx.strokeText('♪ '+hd,W-m,wy);
+    ctx.fillStyle='rgba(255,255,255,.9)'; ctx.fillText('♪ '+hd,W-m,wy);
+  }
+  return cv;
+}
+function renderProduct(it,num,c){
+  const {W,H}=c;
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H); ctx.imageSmoothingQuality='high';
+  const m=W*0.07;
+  let top=m, bottom=H-m;
+  let label=null;
+  if(c.names && it.label){
+    label=fitText(ctx,`${num}. ${it.label}`,W,W*0.062*c.cap,2);
+    top=H*0.07+label.lines.length*label.lh+W*0.05;
+  }
+  const sub=fitText(ctx,`find it at ${storeName(c)}`,W,W*0.042*c.cap,1);
+  bottom=H-H*0.06-sub.lh-W*0.04;
+  const bw=W-2*m, bh=bottom-top;
+  let dw=bw, dh=bw/it.ar; if(dh>bh){ dh=bh; dw=bh*it.ar; }
+  dw*=0.94; dh*=0.94;
+  ctx.drawImage(it.img,(W-dw)/2,top+(bh-dh)/2,dw,dh);
+  if(label) drawOutlined(ctx,label.lines,label.fs,label.lh,W/2,H*0.07);
+  drawOutlined(ctx,sub.lines,sub.fs,sub.lh,W/2,H-H*0.06-sub.lh);
+  return cv;
+}
+function storeName(c){ return c.retailer==='Drugstore' ? 'Target & Walmart' : c.retailer; }
+
+/* ---------- picking ---------- */
+function pickItems(c){
+  const stap=state.items.filter(i=>i.star), rest=shuffle(state.items.filter(i=>!i.star));
+  const n=Math.min(state.items.length, Math.round(rand(c.mn,c.mx+0.49)));
+  const chosen=stap.slice(0,n);
+  for(const it of rest){ if(chosen.length>=n) break; chosen.push(it); }
+  return shuffle(chosen);
+}
+const usage={};
+function pickCampaign(n){
+  const byBrand={}; state.items.forEach(i=>{ (byBrand[i.brand]=byBrand[i.brand]||[]).push(i); });
+  const brands=shuffle(Object.keys(byBrand)); const chosen=[];
+  let guard=0;
+  while(chosen.length<Math.min(n,state.items.length) && guard++<50){
+    for(const b of brands){
+      if(chosen.length>=n) break;
+      const pool=byBrand[b].filter(i=>!chosen.includes(i));
+      if(!pool.length) continue;
+      pool.sort((a,b2)=>((usage[a.id]||0)+Math.random()*0.9)-((usage[b2.id]||0)+Math.random()*0.9));
+      chosen.push(pool[0]);
+    }
+  }
+  chosen.forEach(i=>usage[i.id]=(usage[i.id]||0)+1);
+  return chosen;
+}
+
+/* ---------- captions ---------- */
+function buildCaption(g,c){
+  const store=c.retailer==='Drugstore'?'the drugstore':c.retailer;
+  const hook=g.hook.replace(/^["“”]+|["“”]+$/g,'');
+  const names=g.items.map(i=>i.label).filter(Boolean);
+  const lines=[];
+  lines.push(hook.charAt(0).toUpperCase()+hook.slice(1)+' ✨');
+  if(names.length) lines.push('', ...names.map((n,i)=>`${i+1}. ${n}`));
+  lines.push('');
+  if(c.pageType==='grown') lines.push(`🛒 Find them at Target or Walmart. @mondayhaircare`);
+  else lines.push(`Been loving these from @mondayhaircare 💗 You can find them on Amazon, and at Target and Walmart.`);
+  lines.push(g.engage);
+  lines.push('');
+  const tags=['#mondayhaircare','#drugstorehaircare','#affordablehaircare','#haircarefinds'];
+  if(c.adTag) tags.unshift('#ad');
+  lines.push(tags.join(' '));
+  return lines.join('\n');
+}
+function checkCaption(t){
+  const low=t.toLowerCase();
+  return [
+    ['#mondayhaircare', low.includes('#mondayhaircare')],
+    ['@mondayhaircare', low.includes('@mondayhaircare')],
+    ['Target', low.includes('target')],
+    ['Walmart', low.includes('walmart')],
+    ['No banned tags', !/#drugstorebestfinds|#bestaffordablehaircare/.test(low)]
+  ];
+}
+
+/* ---------- build + output ---------- */
+async function toBlob(cv){ return new Promise(r=>cv.toBlob(r,'image/png')); }
+async function setImg(obj,cv){ obj.blob=await toBlob(cv); if(obj.url) URL.revokeObjectURL(obj.url); obj.url=URL.createObjectURL(obj.blob); }
+async function buildCollage(s){ await setImg(s, renderCollage(s,cfg())); }
+async function buildGroup(g){
+  const c=cfg();
+  g.frames=g.frames||[];
+  g.frames.forEach(f=>f.url&&URL.revokeObjectURL(f.url));
+  g.frames=[];
+  if(c.hookSlide){ const f={}; await setImg(f, renderCollage({hook:g.hook,items:g.items,capPos:rand(0.36,0.42)},c)); g.frames.push(f); }
+  for(let i=0;i<g.items.length;i++){ const f={}; await setImg(f, renderProduct(g.items[i],i+1,c)); g.frames.push(f); }
+}
+function makeGroup(hookRaw){
+  const c=cfg();
+  const store=c.retailer==='Drugstore'?'the drugstore':c.retailer;
+  const hook=hookRaw.replace(/\{store\}/gi,store);
+  const g={id:uid(),hook,items:pickCampaign(4),engage:pick(ENGAGE)};
+  g.caption=buildCaption(g,c);
+  return g;
+}
+
+function renderOut(){
+  const box=$('#out'); box.innerHTML='';
+  const hint=$('#saveHint');
+  if(camp()){
+    if(!state.groups.length){ box.innerHTML='<div class="empty">Upload the asset pack, name and tag each product, then hit Generate.</div>'; $('#slideCount').textContent=''; $('#zipAll').disabled=true; }
+    else{
+      const wrap=document.createElement('div'); wrap.className='groups';
+      state.groups.forEach((g,gi)=>{
+        const d=document.createElement('div'); d.className='group';
+        d.innerHTML=`<h3><span>Carousel ${gi+1}</span><span style="color:var(--mute);font-weight:600">${g.frames.length} slides</span></h3>
+          <div class="strip"></div><textarea spellcheck="true"></textarea><div class="checks"></div>
+          <div class="row" style="margin-top:8px"><button class="cp">Copy caption</button><button class="ghost r">↻ Reshuffle products</button>${state.downloads?'<button class="sv">Save .zip</button>':''}</div>`;
+        const strip=d.querySelector('.strip');
+        g.frames.forEach((f,i)=>{ const im=document.createElement('img'); im.src=f.url; im.alt=`Slide ${i+1}`; strip.appendChild(im); });
+        const ta=d.querySelector('textarea'); ta.value=g.caption;
+        const paint=()=>{ d.querySelector('.checks').innerHTML=checkCaption(ta.value).map(([k,ok])=>`<span class="pill ${ok?'':'bad'}">${ok?'✓':'✗'} ${k}</span>`).join(''); };
+        ta.oninput=()=>{ g.caption=ta.value; paint(); }; paint();
+        d.querySelector('.cp').onclick=async()=>{ try{ await navigator.clipboard.writeText(ta.value); toast('Caption copied'); }catch(e){ ta.select(); toast('Select and copy the caption'); } };
+        d.querySelector('.r').onclick=async()=>{ g.items=pickCampaign(4); g.caption=buildCaption(g,cfg()); await buildGroup(g); renderOut(); };
+        const sv=d.querySelector('.sv'); if(sv) sv.onclick=()=>saveGroup(g,gi);
+        wrap.appendChild(d);
+      });
+      box.appendChild(wrap);
+      $('#slideCount').textContent=`${state.groups.length} carousel${state.groups.length===1?'':'s'}`;
+      $('#zipAll').disabled=!state.downloads;
+    }
+    hint.textContent = state.downloads ? 'Swipe each strip to check the slides. Captions are editable, and the checks update as you type.' : 'Long-press a slide to save it. Captions are editable, and the checks update as you type.';
+    return;
+  }
+  if(!state.slides.length){ box.innerHTML='<div class="empty">Add some products and hit Generate.</div>'; $('#slideCount').textContent=''; $('#zipAll').disabled=true; }
+  else{
+    const grid=document.createElement('div'); grid.className='slides';
+    state.slides.forEach((s,idx)=>{
+      const d=document.createElement('div'); d.className='slide';
+      d.innerHTML=`<img alt="Slide ${idx+1}"><input type="text"><div class="bar"><button class="ghost r">↻ Reshuffle</button>${state.downloads?'<button class="sv">Save</button>':''}</div>`;
+      d.querySelector('img').src=s.url;
+      const inp=d.querySelector('input'); inp.value=s.hook;
+      inp.addEventListener('keydown',async e=>{ if(e.key==='Enter'){ s.hook=inp.value.trim()||s.hook; await buildCollage(s); d.querySelector('img').src=s.url; inp.blur(); }});
+      d.querySelector('.r').onclick=async()=>{ s.items=pickItems(cfg()); s.capPos=rand(0.34,0.4); await buildCollage(s); d.querySelector('img').src=s.url; };
+      const sv=d.querySelector('.sv'); if(sv) sv.onclick=()=>save(`slide-${String(idx+1).padStart(2,'0')}.png`, s.blob);
+      grid.appendChild(d);
+    });
+    box.appendChild(grid);
+    $('#slideCount').textContent=`${state.slides.length} slides`;
+    $('#zipAll').disabled=!state.downloads;
+  }
+  hint.textContent='Edit a hook under any slide and press Enter to re-render it. ↻ reshuffles one slide.'+(state.downloads?'':' Long-press a slide to save it.');
+}
+
+$('#gen').onclick=async()=>{
+  const need=camp()?2:4;
+  if(state.items.length<need){ toast(`Add at least ${need} product images first`); return; }
+  let hooks=getHooks(); if(!hooks.length){ toast('Add at least one hook'); return; }
+  const mode=$('#slideMode').value;
+  if(mode!=='all'){ const n=+mode, pool=shuffle(hooks.slice()); hooks=[]; for(let i=0;i<n;i++) hooks.push(pool[i%pool.length]); }
+  try{ await document.fonts.load('900 60px Montserrat'); }catch(e){}
+  const btn=$('#gen'); btn.disabled=true; btn.textContent='Generating…';
+  if(camp()){
+    state.groups.forEach(g=>(g.frames||[]).forEach(f=>f.url&&URL.revokeObjectURL(f.url)));
+    state.groups=[];
+    for(const h of hooks){ const g=makeGroup(h); await buildGroup(g); state.groups.push(g); }
+  } else {
+    state.slides.forEach(s=>s.url&&URL.revokeObjectURL(s.url)); state.slides=[];
+    let prevKey='';
+    for(const h of hooks){
+      let s={id:uid(),hook:h,items:pickItems(cfg()),capPos:rand(0.34,0.4)};
+      if($('#noRepeat').checked){ for(let k=0;k<4;k++){ const key=s.items.slice(0,4).map(i=>i.id).join(); if(key!==prevKey){prevKey=key;break;} s.items=pickItems(cfg()); } }
+      await buildCollage(s); state.slides.push(s);
+    }
+  }
+  btn.disabled=false; btn.textContent='Generate';
+  renderOut();
+  $('#out').scrollIntoView({behavior:'smooth',block:'start'});
+};
+
+/* ---------- saving ---------- */
+async function save(filename,data){
+  if(!state.downloads){ toast('Long-press a slide image to save it'); return; }
+  try{ await state.downloads.save({filename,data}); toast('Saved'); }
+  catch(e){ if(e&&e.code==='declined') return; if(e&&e.code==='rate_limited') toast('One moment, then try again'); else toast('Saving isn’t available here. Long-press the image instead'); }
+}
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function makeZip(files){
+  const enc=new TextEncoder(), parts=[], central=[]; let off=0;
+  for(const f of files){
+    const name=enc.encode(f.name), crc=crc32(f.data), sz=f.data.length;
+    const lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true); lh.setUint16(4,20,true); lh.setUint16(12,33,true);
+    lh.setUint32(14,crc,true); lh.setUint32(18,sz,true); lh.setUint32(22,sz,true); lh.setUint16(26,name.length,true);
+    parts.push(new Uint8Array(lh.buffer),name,f.data);
+    const ch=new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true); ch.setUint16(4,20,true); ch.setUint16(6,20,true); ch.setUint16(14,33,true);
+    ch.setUint32(16,crc,true); ch.setUint32(20,sz,true); ch.setUint32(24,sz,true); ch.setUint16(28,name.length,true); ch.setUint32(42,off,true);
+    central.push(new Uint8Array(ch.buffer),name);
+    off+=30+name.length+sz;
+  }
+  const cd=central.reduce((a,p)=>a+p.length,0), end=new DataView(new ArrayBuffer(22));
+  end.setUint32(0,0x06054b50,true); end.setUint16(8,files.length,true); end.setUint16(10,files.length,true);
+  end.setUint32(12,cd,true); end.setUint32(16,off,true);
+  return new Blob([...parts,...central,new Uint8Array(end.buffer)],{type:'application/zip'});
+}
+const bytes = async b => new Uint8Array(await b.arrayBuffer());
+const enc = s => new TextEncoder().encode(s);
+async function groupFiles(g,gi,prefix){
+  const out=[];
+  for(let i=0;i<g.frames.length;i++) out.push({name:`${prefix}slide-${i+1}.png`, data:await bytes(g.frames[i].blob)});
+  out.push({name:`${prefix}caption.txt`, data:enc(g.caption)});
+  return out;
+}
+async function saveGroup(g,gi){ save(`monday-carousel-${gi+1}.zip`, makeZip(await groupFiles(g,gi,''))); }
+$('#zipAll').onclick=async()=>{
+  const stamp=new Date().toISOString().slice(0,10);
+  if(camp()){
+    if(!state.groups.length) return;
+    let files=[]; for(let i=0;i<state.groups.length;i++) files=files.concat(await groupFiles(state.groups[i],i,`carousel-${String(i+1).padStart(2,'0')}/`));
+    save(`monday-carousels-${stamp}.zip`, makeZip(files));
+  } else {
+    if(!state.slides.length) return;
+    const files=[]; for(let i=0;i<state.slides.length;i++) files.push({name:`slide-${String(i+1).padStart(2,'0')}.png`, data:await bytes(state.slides[i].blob)});
+    save(`glowup-slides-${stamp}.zip`, makeZip(files));
+  }
+};
+
+/* ---------- boot ---------- */
+setMode(LS.get('mode','collage'));
+(async()=>{
+  const recs=await dbAll();
+  if(recs&&recs.length){
+    recs.sort((a,b)=>(a.added||0)-(b.added||0));
+    for(const r of recs){ try{ const p=await processBlob(r.blob); state.items.push({label:guessLabel(r.name||''),brand:guessBrand(r.name||''),...r,...p}); }catch(e){} }
+    renderLib();
+  }
+})();
+(async()=>{
+  try{ if(window.claude&&window.claude.use){ const d=await window.claude.use('downloads'); if(d){ state.downloads=d; renderOut(); } } }catch(e){}
+})();
+</script>
+</body>
+</html>
